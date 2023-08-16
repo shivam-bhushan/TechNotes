@@ -66,5 +66,56 @@ const updateNote = asyncHandler(async (req, res) => {
     res.status(400).json({ message: "All the fields are required" });
   }
 
-  //
+  //Confirm note exists to update
+  const note = await Note.findById(id).exec();
+
+  if (!note) {
+    return res.status(400).json({ message: "Note does not exist" });
+  }
+
+  //check for duplicate title
+  const duplicate = await Note.findById({ title }).lean().exec();
+
+  if (duplicate && duplicate?._id.toString() !== id) {
+    return res.status(400).json({ message: "Duplicate note title" });
+  }
+
+  note.user = user;
+  note.title = title;
+  note.text = text;
+  note.completed = completed;
+
+  const updatedNote = await note.save();
+
+  res.json(`${updatedNote.title} updated`);
 });
+
+//@desc delete
+//@route DELETE
+//@access private
+const deleteNote = asyncHandler(async (req, res) => {
+  const { id } = req.body;
+
+  //confirm data
+  if (!id) {
+    res.status(400).json({ message: "NoteID required" });
+  }
+
+  //Check if note exist
+  const note = await Note.findById(id).exec();
+  if (!note) {
+    res.status(400).json({ message: "Note does not exist" });
+  }
+
+  const result = await note.deleteOne();
+
+  const reply = `Note ${result.title} with ID ${result._id} was deleted`;
+  res.json(reply);
+});
+
+module.exports = {
+  getAllNotes,
+  createNewNote,
+  updateNote,
+  deleteNote,
+};

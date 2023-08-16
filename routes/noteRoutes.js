@@ -3,6 +3,11 @@ const router = express.Router();
 
 const notesController = require("../controllers/notesController");
 
-router.route("/").get().post().patch().delete();
+router
+  .route("/")
+  .get(notesController.getAllNotes)
+  .post(notesController.createNewNote)
+  .patch(notesController.updateNote)
+  .delete(notesController.deleteNote);
 
 module.exports = router;
